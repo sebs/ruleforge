@@ -1,0 +1,125 @@
+flowchart TD
+    F026["F026 Seeded RNG"]
+    F027["F027 Dice Injection"]
+    F026 --> F027
+
+    F005["F005 Level Table Data"]
+    F001["F001 Grid Model"]
+    F007["F007 Resource Counters"]
+
+    F002["F002 Grid Rendering"]
+    F003["F003 King-Adjacency"]
+    F004["F004 Move Commit"]
+    F001 --> F002
+    F001 --> F003
+    F001 --> F004
+    F002 --> F004
+    F003 --> F004
+
+    F006["F006 Room Content Roll"]
+    F005 --> F006
+    F026 --> F006
+
+    F008["F008 Room Resolution"]
+    F006 --> F008
+    F007 --> F008
+
+    F009["F009 Combat FSM"]
+    F007 --> F009
+    F026 --> F009
+
+    F010["F010 Combat Dice Vis"]
+    F009 --> F010
+
+    F011["F011 Potion Recovery"]
+    F007 --> F011
+
+    F012["F012 Shop System"]
+    F007 --> F012
+    F013["F013 Item Slot Enforcement"]
+    F012 --> F013
+    F014["F014 Derived Dice Pools"]
+    F013 --> F014
+    F014 --> F009
+
+    F015["F015 Potion Purchase Timing"]
+    F011 --> F015
+    F012 --> F015
+
+    F016["F016 Blocked-Path Detection"]
+    F001 --> F016
+    F003 --> F016
+
+    F017["F017 Win/Loss"]
+    F009 --> F017
+    F016 --> F017
+
+    F018["F018 Turn Sequence Controller"]
+    F003 --> F018
+    F008 --> F018
+    F009 --> F018
+    F011 --> F018
+    F012 --> F018
+
+    F019["F019 Player HUD"]
+    F007 --> F019
+    F014 --> F019
+
+    F020["F020 Start Screen"]
+    F021["F021 End-of-Run Summary"]
+    F017 --> F021
+    F022["F022 Save Current Run"]
+    F018 --> F022
+
+    F023["F023 Tutorial Flow"]
+    F018 --> F023
+    F027 --> F023
+
+    F024["F024 First-Time Tooltips"]
+    F019 --> F024
+
+    F025["F025 Help Screen"]
+
+    F029["F029 End Confirmation"]
+    F017 --> F029
+
+    F030["F030 Undo Last Move"]
+    F004 --> F030
+
+    F031["F031 Run History Log"]
+    F021 --> F031
+
+    F035["F035 Daily Seed"]
+    F026 --> F035
+
+    F036["F036 Achievements"]
+    F021 --> F036
+
+    F037["F037 Run Stats DB"]
+    F031 --> F037
+
+    F038["F038 Difficulty Modes"]
+    F007 --> F038
+    F009 --> F038
+
+    F039["F039 Daily Leaderboard"]
+    F035 --> F039
+
+    F041["F041 SR Combat Log"]
+    F010 --> F041
+
+    F042["F042 Keyboard Nav"]
+    F003 --> F042
+
+    F043["F043 Colorblind Palette"]
+    F002 --> F043
+
+    classDef must fill:#c8e6c9,stroke:#2e7d32,color:#000
+    classDef should fill:#fff9c4,stroke:#f9a825,color:#000
+    classDef could fill:#e1bee7,stroke:#6a1b9a,color:#000
+    classDef wont fill:#ffcdd2,stroke:#c62828,color:#000
+
+    class F001,F002,F003,F004,F005,F006,F007,F008,F009,F010,F011,F012,F013,F014,F015,F016,F017,F018,F019,F020,F021,F022,F023,F024,F026,F027,F029 must
+    class F025,F030,F031,F041,F042,F043 should
+    class F028,F033,F035,F036,F037,F038 could
+    class F039 wont

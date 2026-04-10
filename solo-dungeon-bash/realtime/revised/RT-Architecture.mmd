@@ -1,0 +1,163 @@
+flowchart TD
+    %% =====================================================
+    %% Solo Dungeon Dash — Real-Time Architecture (Godot 4)
+    %% Seven layers, single-player, 60fps target
+    %% =====================================================
+
+    %% ---------- PLATFORM LAYER ----------
+    subgraph PLATFORM ["Engine / Platform Layer"]
+        direction LR
+        Godot["Godot 4.3 Engine<br/>C# + GDScript<br/>2D renderer"]
+        PlatformPC["PC Build<br/>Steam + itch.io<br/>Windows / Linux / macOS"]
+        PlatformDeck["Steam Deck Build<br/>Proton verified<br/>gamepad-first UI"]
+        PlatformMobile["Mobile Build<br/>iOS / Android<br/>touch virtual stick"]
+        Godot --> PlatformPC
+        Godot --> PlatformDeck
+        Godot --> PlatformMobile
+    end
+
+    %% ---------- CORE SYSTEMS ----------
+    subgraph CORE ["Core Systems Layer"]
+        direction LR
+        GameLoop["Game Loop<br/>fixed 60Hz logic<br/>variable render"]
+        TimeSys["Time System<br/>dt, fixed_dt, pause<br/>time scale for dice anim"]
+        InputSys["Input System<br/>WASD / gamepad / touch<br/>action map abstraction"]
+        PhysicsSys["Physics / Collision<br/>Godot Area2D / Shapes<br/>hitboxes, hurtboxes"]
+        RenderSys["Rendering<br/>CanvasItem, shaders<br/>hand-drawn ink mat"]
+        AudioSys["Audio System<br/>AudioServer buses<br/>music + SFX"]
+        SaveCore["Save Core<br/>JSON + user://<br/>atomic write"]
+    end
+
+    %% ---------- GAME LOGIC ----------
+    subgraph LOGIC ["Game Logic Layer"]
+        direction LR
+        SceneMgr["Scene / State Manager<br/>Menu / Run / Summary"]
+        RoomMgr["Room Manager<br/>current cell, transitions<br/>door seals, wall glow"]
+        DungeonGen["Dungeon Generator<br/>seed to 9x10 grid<br/>pre-seeded content"]
+        Reachability["Reachability Checker<br/>BFS king-adjacent<br/>block warning"]
+        CombatFSM["Combat FSM<br/>Roll-and-Parry<br/>beat cycle"]
+        DiceTray["Dice Tray System<br/>AD/DD pool<br/>roll anim + damage calc"]
+        PlayerCtrl["Player Controller<br/>cell-snapped locomotion<br/>swing / parry / dodge"]
+        EnemyAI["Enemy AI Controller<br/>telegraph attack guard<br/>boss phase patterns"]
+        EconomySys["Economy System<br/>treasure / potions<br/>inventory 3 slots"]
+        ShopSys["Shop System<br/>Shop Shrine interact<br/>slot enforcement"]
+        ProcContent["Procedural Content<br/>Seed PRNG chain<br/>deterministic spawn"]
+    end
+
+    %% ---------- PRESENTATION ----------
+    subgraph PRESENT ["Presentation Layer"]
+        direction LR
+        HUD["HUD System<br/>17 hearts, treasure,<br/>potion stack"]
+        DiceTrayUI["Dice Tray UI<br/>bottom-right panel<br/>d6 visible, cascade"]
+        MapOverlay["Map Overlay<br/>V-key toggle<br/>9x10 ink grid"]
+        MenusUI["Menus UI<br/>Title / Pause / Settings<br/>Summary / Bestiary"]
+        TutorialUI["Tutorial Overlay<br/>first-run tooltips<br/>coach marks"]
+        VFXSys["VFX System<br/>particles, shake<br/>ink splatter, dust"]
+        CameraSys["Camera System<br/>room framing, shake<br/>zoom, letterbox"]
+        AnimSys["Animation System<br/>AnimationPlayer<br/>sprite state machines"]
+    end
+
+    %% ---------- DATA ----------
+    subgraph DATA ["Data Layer"]
+        direction LR
+        LevelTables["Level Tables<br/>11 entries L1-L10+Boss<br/>d6 content map"]
+        MonsterDefs["Monster Defs<br/>AD/DD, sprite, tells<br/>telegraph timing"]
+        ItemCatalog["Item Catalog<br/>weapons/shields/armour<br/>cost, slot, bonus"]
+        BalanceCfg["Balance Config<br/>HP cap, speeds,<br/>difficulty modes"]
+        SeedPRNG["Seed PRNG<br/>Mulberry32<br/>sub-streams per system"]
+        Localisation["Localisation<br/>string tables<br/>EN + JA + DE"]
+    end
+
+    %% ---------- SERVICES ----------
+    subgraph SERVICES ["Services Layer"]
+        direction LR
+        SaveSvc["Save / Load Service<br/>auto after every room<br/>double-buffer"]
+        Telemetry["Telemetry<br/>opt-in funnel metrics<br/>GDPR respect"]
+        Achievements["Achievement Tracker<br/>event listener<br/>Steam + local"]
+        SteamAPI["Steam / Platform APIs<br/>cloud sync, overlay<br/>deck input"]
+    end
+
+    %% ---------- EDGES: LOGIC -> CORE ----------
+    CombatFSM -->|tick beats| GameLoop
+    PlayerCtrl -->|poll actions| InputSys
+    EnemyAI -->|swing tests| PhysicsSys
+    RoomMgr -->|query scenes| SceneMgr
+    CombatFSM -->|hurtbox checks| PhysicsSys
+    DiceTray -->|anim time scale| TimeSys
+    PlayerCtrl -->|move resolve| PhysicsSys
+    RoomMgr -->|draw rooms| RenderSys
+    CombatFSM -->|play SFX| AudioSys
+
+    %% ---------- EDGES: LOGIC -> DATA ----------
+    DungeonGen -->|read| LevelTables
+    CombatFSM -->|read| MonsterDefs
+    ShopSys -->|read| ItemCatalog
+    CombatFSM -->|read| BalanceCfg
+    PlayerCtrl -->|read| BalanceCfg
+    DungeonGen -->|seed stream| SeedPRNG
+    CombatFSM -->|dice stream| SeedPRNG
+    DiceTray -->|roll stream| SeedPRNG
+    EnemyAI -->|AI stream| SeedPRNG
+    ProcContent -->|owns| SeedPRNG
+    HUD -->|strings| Localisation
+    MenusUI -->|strings| Localisation
+
+    %% ---------- EDGES: LOGIC -> PRESENT ----------
+    CombatFSM -->|state events| HUD
+    CombatFSM -->|dice events| DiceTrayUI
+    CombatFSM -->|hit events| VFXSys
+    CombatFSM -->|shake cue| CameraSys
+    CombatFSM -->|anim triggers| AnimSys
+    RoomMgr -->|ink trail| MapOverlay
+    RoomMgr -->|camera frame| CameraSys
+    RoomMgr -->|room transition| VFXSys
+    PlayerCtrl -->|player sprite| AnimSys
+    EnemyAI -->|mob sprite| AnimSys
+    EconomySys -->|hearts treasure| HUD
+    ShopSys -->|shop UI| MenusUI
+    SceneMgr -->|show menus| MenusUI
+    SceneMgr -->|first run| TutorialUI
+
+    %% ---------- EDGES: SERVICES ----------
+    SaveCore --> SaveSvc
+    SceneMgr -->|save/load| SaveSvc
+    RoomMgr -->|auto-save hook| SaveSvc
+    CombatFSM -->|event stream| Achievements
+    RoomMgr -->|event stream| Achievements
+    SceneMgr -->|opt-in| Telemetry
+    SaveSvc -->|cloud| SteamAPI
+    Achievements -->|unlock| SteamAPI
+    InputSys -->|deck input| SteamAPI
+
+    %% ---------- EDGES: PRESENT -> CORE ----------
+    HUD -->|draw| RenderSys
+    DiceTrayUI -->|draw| RenderSys
+    MapOverlay -->|draw| RenderSys
+    MenusUI -->|draw| RenderSys
+    TutorialUI -->|draw| RenderSys
+    VFXSys -->|draw| RenderSys
+    CameraSys -->|viewport| RenderSys
+    AnimSys -->|sprite frames| RenderSys
+
+    %% ---------- CORE -> PLATFORM ----------
+    GameLoop --> Godot
+    RenderSys --> Godot
+    AudioSys --> Godot
+    InputSys --> Godot
+    PhysicsSys --> Godot
+    SaveCore --> Godot
+
+    %% ---------- STYLING ----------
+    classDef platform fill:#d1c4e9,stroke:#4527a0,color:#000,stroke-width:2px
+    classDef core fill:#b3e5fc,stroke:#0277bd,color:#000,stroke-width:2px
+    classDef logic fill:#c8e6c9,stroke:#2e7d32,color:#000,stroke-width:2px
+    classDef present fill:#fff9c4,stroke:#f57f17,color:#000,stroke-width:2px
+    classDef data fill:#ffe0b2,stroke:#e65100,color:#000,stroke-width:2px
+    classDef services fill:#f8bbd0,stroke:#ad1457,color:#000,stroke-width:2px
+
+    class Godot,PlatformPC,PlatformDeck,PlatformMobile platform
+    class GameLoop,TimeSys,InputSys,PhysicsSys,RenderSys,AudioSys,SaveCore core
+    class SceneMgr,RoomMgr,DungeonGen,Reachability,CombatFSM,DiceTray,PlayerCtrl,EnemyAI,EconomySys,ShopSys,ProcContent logic
+    class HUD,DiceTrayUI,MapOverlay,MenusUI,TutorialUI,VFXSys,CameraSys,AnimSys present
+    class LevelTables,MonsterDefs,ItemCatalog,BalanceCfg,SeedPRNG,Localisation data
+    class SaveSvc,Telemetry,Achievements,SteamAPI services

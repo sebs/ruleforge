@@ -1,0 +1,108 @@
+flowchart TB
+    subgraph UI ["UI Layer (React / Svelte + Canvas/SVG)"]
+        GridView["GridView<br/>Renders 9x10 grid + Start/End<br/>Click handlers for legal cells"]
+        HUDView["HUDView<br/>HP, AD, DD, Treasure, Potions<br/>Equipment slots display"]
+        CombatView["CombatView<br/>Dice animations, hit/block tally<br/>Combat log"]
+        ShopView["ShopView<br/>Item catalog, cost, affordability<br/>Slot exclusivity indication"]
+        PotionView["PotionView<br/>Healing modal at step 6"]
+        MenuView["MenuView<br/>Start/Tutorial/Settings"]
+        EndView["EndView<br/>Victory/Defeat screen"]
+        TutorialOverlay["TutorialOverlay<br/>Scripted tooltips"]
+    end
+
+    subgraph Controller ["Controller / Dispatcher"]
+        InputHandler["Input Handler<br/>Mouse/touch/keyboard → actions"]
+        TurnController["Turn Sequence Controller<br/>(FSM — enforces 7 steps)"]
+        CombatController["Combat Controller<br/>(FSM — inner loop)"]
+    end
+
+    subgraph Domain ["Domain / Rules Engine"]
+        GameState["GameState<br/>grid, player, turn#, phase"]
+        Player["Player<br/>hp, baseAD, baseDD,<br/>treasure, potions,<br/>inventory"]
+        Grid["Grid<br/>9x10 cells + Start/End"]
+        Inventory["Inventory<br/>weapon slot, shield slot,<br/>armour slot"]
+        RulesEngine["Rules Engine<br/>legalMoves()<br/>resolveRoom()<br/>resolveCombat()<br/>applyPurchase()"]
+        Reachability["Reachability Checker<br/>BFS: canReachEnd()"]
+    end
+
+    subgraph Data ["Data Layer"]
+        LevelTables["Level Tables<br/>(JSON asset)"]
+        ItemCatalog["Item Catalog<br/>(JSON asset)"]
+        MonsterDefs["Monster Definitions<br/>(JSON asset)"]
+        BalanceConfig["Balance Config<br/>(JSON, difficulty modes)"]
+    end
+
+    subgraph Services ["Services"]
+        RNG["Seeded RNG<br/>(PRNG + test injection)"]
+        SaveService["Save Service<br/>(localStorage / IndexedDB)"]
+        Audio["Audio Service<br/>(Howler / Web Audio)"]
+        Analytics["Analytics<br/>(optional, opt-in)"]
+        AchievementTracker["Achievement Tracker"]
+    end
+
+    subgraph Persistence ["Persistence"]
+        LocalStore["Browser Storage<br/>save state, settings, history"]
+        CloudSync["Cloud Sync<br/>(optional, v2)"]
+    end
+
+    %% UI → Controller
+    GridView --> InputHandler
+    HUDView --> InputHandler
+    ShopView --> InputHandler
+    PotionView --> InputHandler
+    CombatView --> InputHandler
+    MenuView --> InputHandler
+
+    %% Controller → Domain
+    InputHandler --> TurnController
+    TurnController --> RulesEngine
+    TurnController --> CombatController
+    CombatController --> RulesEngine
+
+    %% Domain → State
+    RulesEngine --> GameState
+    GameState --> Player
+    GameState --> Grid
+    Player --> Inventory
+    RulesEngine --> Reachability
+    Reachability --> Grid
+
+    %% Data → Rules
+    LevelTables --> RulesEngine
+    ItemCatalog --> RulesEngine
+    MonsterDefs --> RulesEngine
+    BalanceConfig --> RulesEngine
+
+    %% Services
+    RulesEngine --> RNG
+    CombatController --> RNG
+    TurnController --> SaveService
+    SaveService --> LocalStore
+    TurnController --> Audio
+    CombatController --> Audio
+    TurnController --> AchievementTracker
+    SaveService --> CloudSync
+    AchievementTracker --> LocalStore
+    TurnController --> Analytics
+
+    %% State → UI (render flow)
+    GameState --> GridView
+    GameState --> HUDView
+    GameState --> CombatView
+    GameState --> ShopView
+    GameState --> EndView
+    TurnController --> TutorialOverlay
+
+    classDef ui fill:#e1f5fe,stroke:#0277bd,color:#000
+    classDef ctrl fill:#fff9c4,stroke:#f57f17,color:#000
+    classDef domain fill:#c8e6c9,stroke:#2e7d32,color:#000
+    classDef data fill:#ffe0b2,stroke:#e65100,color:#000
+    classDef svc fill:#f8bbd0,stroke:#ad1457,color:#000
+    classDef persist fill:#d1c4e9,stroke:#4527a0,color:#000
+
+    class GridView,HUDView,CombatView,ShopView,PotionView,MenuView,EndView,TutorialOverlay ui
+    class InputHandler,TurnController,CombatController ctrl
+    class GameState,Player,Grid,Inventory,RulesEngine,Reachability domain
+    class LevelTables,ItemCatalog,MonsterDefs,BalanceConfig data
+    class RNG,SaveService,Audio,Analytics,AchievementTracker svc
+    class LocalStore,CloudSync persist

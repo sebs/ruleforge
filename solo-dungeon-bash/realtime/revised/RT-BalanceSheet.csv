@@ -1,0 +1,116 @@
+parameter,category,source_value,rt_value,units,notes
+starting_health,player_stat,17,17,hearts,Preserved verbatim. 17 discrete heart pips HUD-top-left. Tuning range 14-20; break <10 or >22.
+health_cap,player_stat,17,17,hearts,Preserved. Hard cap; potions cannot overfill. Same as source.
+starting_attack_dice,player_stat,1,1,dice_in_tray,Preserved. Player starts with 1 d6 in the visible attack dice tray.
+starting_defence_dice,player_stat,1,1,dice_in_tray,Preserved. Player starts with 1 d6 in the visible defence dice tray.
+die_success_threshold,combat,6 of 1-6,6,d6_face,Preserved verbatim. Count-6s on d6 remains the sacred math. DO NOT TOUCH without full rebalance.
+monster_hp_default,combat,1,1,hp,Preserved. One unblocked hit during an Opening window kills any normal monster.
+dracular_hp,combat,1,1,hp,Preserved. Three Phase gates replace multi-HP. Each phase ends on 1 clean hit.
+dracular_attack_dice,combat,9,9,dice_in_tray,Preserved. 9 d6 clatter visibly in the enemy dice tray per strike.
+dracular_defence_dice,combat,9,9,dice_in_tray,Preserved. Renders as the crimson aura. Tuning range 7-11; break <5 or >13.
+grid_width,dungeon,9,9,cells,Preserved. The 9-cell-wide floor plate is identical per-row.
+grid_height,dungeon,10,10,cells,Preserved. 10 rows = 10 levels. Row transitions trigger monster table swaps.
+total_normal_rooms,dungeon,90,90,cells,Preserved. Derived from 9 x 10 grid.
+adjacency_type,dungeon,8-way king,8-way king,topology,Preserved. 8-way king adjacency remains the walkable graph.
+revisit_allowed,dungeon,false,false,boolean,Preserved. Visited cells lock (floor collapses visibly) on commit.
+min_path_length,dungeon,11,11,cells,Preserved (derived).
+cell_traversal_ms,timing,n/a,400,ms_per_cell,NEW. Walk speed: 0.4s per cell. Hustle variant 250ms. Tuning 300-500; break <200 or >700.
+cell_commit_window_ms,timing,n/a,120,ms,"NEW. First 30% of walk animation is cancelable; after that, the floor-collapse triggers."
+player_move_speed_m_per_s,feel,n/a,4,m_per_s,"NEW. Derived from 1.6m cell / 0.4s traversal. Tuning 3-5; break <2 (frustrating) or >6 (dodge trivializes combat)."
+monster_l1_max_attack_dice,monster,1,1,dice_in_tray,Preserved. Orc. Generous telegraph for tutorial learning.
+monster_l2_max_attack_dice,monster,2,2,dice_in_tray,Preserved. Wolf. Movement-based threat.
+monster_l3_max_attack_dice,monster,3,3,dice_in_tray,Preserved. Skeleton.
+monster_l4_max_attack_dice,monster,4,4,dice_in_tray,Preserved. Evil Warrior. Parries the player.
+monster_l5_max_attack_dice,monster,5,5,dice_in_tray,Preserved. Devil Bat.
+monster_l6_max_attack_dice,monster,6,6,dice_in_tray,Preserved. Cyclops. Arena-control threat.
+monster_l7_max_attack_dice,monster,7,7,dice_in_tray,Preserved. Dark Elf. Ranged poisoned darts.
+monster_l8_max_attack_dice,monster,8,8,dice_in_tray,Preserved. Skeleton Lord. Summons adds.
+monster_l9_max_attack_dice,monster,9,9,dice_in_tray,Preserved. Wizard. Pure ranged caster.
+monster_l10_max_attack_dice,monster,10,10,dice_in_tray,"Preserved. Demon. Cap per-hit damage at 3 pips (FP-1). Tuning 8-11; break <6 or >13."
+monster_progression_delta_per_level,monster,+1 AD,+1,dice_per_level,Preserved. Smooth learning slope.
+monster_l1_monster_probability,monster,3/6 (50%),50,percent_of_rooms,Preserved (per-room stochastic roll is pre-seeded per run).
+monster_l2_monster_probability,monster,2/6 (33%),33,percent_of_rooms,Preserved. L2 remains unusually safe.
+monster_l3_monster_probability,monster,3/6 (50%),50,percent_of_rooms,Preserved.
+monster_l4_monster_probability,monster,4/6 (67%),67,percent_of_rooms,Preserved.
+monster_l5_monster_probability,monster,4/6 (67%),67,percent_of_rooms,Preserved.
+monster_l6_monster_probability,monster,4/6 (67%),67,percent_of_rooms,Preserved.
+monster_l7_monster_probability,monster,4/6 (67%),67,percent_of_rooms,Preserved.
+monster_l8_monster_probability,monster,4/6 (67%),67,percent_of_rooms,Preserved.
+monster_l9_monster_probability,monster,4/6 (67%),67,percent_of_rooms,Preserved.
+monster_l10_monster_probability,monster,4/6 (67%),67,percent_of_rooms,Preserved.
+treasure_probability_default,economy,1/6 (17%),17,percent_per_room,Preserved. Flat treasure faucet. Translates to ~1 treasure every 6 rooms = ~1 per 30s.
+potion_probability_l1,economy,1/6 (17%),17,percent_per_room,Preserved. Early-game healing faucet.
+potion_probability_l3,economy,1/6 (17%),17,percent_per_room,Preserved.
+potion_probability_l6,economy,1/6 (17%),17,percent_per_room,Preserved.
+potion_probability_l9,economy,1/6 (17%),17,percent_per_room,Preserved. Deep healing lifeline.
+potion_to_hp_ratio,economy,1:1,1:1,potions_per_heart,Preserved. 1 potion = +1 heart.
+bought_potion_delay,economy,usable next turn,5000,ms_arming,"NEW-RT translation. 5s real-time ""chilling"" cooldown on bought potions. Tuning 3000-8000; break <1500 or >12000."
+potion_carry_cap,economy,unbounded,6,vials,RT-new cap to prevent degenerate hoarding. Source was unbounded.
+flee_combat,combat,not allowed,not allowed,rule,Preserved. Room-lock (walls glow) until combat resolves.
+max_attack_dice_pool,combat,5,5,dice_in_tray,"Preserved. 1 base + 2 Big Axe + 2 Spiky Armour. The player's attack dice tray visibly grows to this size."
+max_defence_dice_pool,combat,7-8,7,dice_in_tray,"Preserved. 1 base + 2 Shield + 5 Magical Armour (A-3 literal path)."
+buckler_cost,shop,1,1,gold,Preserved. Cheap defensive entry tier.
+buckler_defence_bonus,shop,1,1,dice_in_tray,Preserved. +1 d6 to defence dice tray.
+shield_cost,shop,2,2,gold,Preserved.
+shield_defence_bonus,shop,2,2,dice_in_tray,Preserved. +2 d6 to defence dice tray.
+potion_single_cost,shop,1,1,gold,Preserved.
+potion_triple_cost,shop,2,2,gold,Preserved. 50% discount for buying in bulk.
+potion_six_cost,shop,3,3,gold,Preserved.
+big_sword_cost,shop,3,3,gold,Preserved.
+big_sword_attack_bonus,shop,1,1,dice_in_tray,Preserved. +1 d6 to attack dice tray.
+big_axe_cost,shop,4,4,gold,Preserved.
+big_axe_attack_bonus,shop,2,2,dice_in_tray,Preserved. +2 d6 to attack dice tray.
+spiky_armour_cost,shop,5,5,gold,Preserved.
+spiky_armour_attack_bonus,shop,2,2,dice_in_tray,Preserved. +2 d6 to attack dice tray.
+spiky_armour_defence_bonus,shop,1,1,dice_in_tray,Preserved. +1 d6 to defence dice tray.
+magical_armour_cost,shop,6,6,gold,Preserved.
+magical_armour_defence_bonus,shop,5,5,dice_in_tray,Preserved. +5 d6 to defence dice tray.
+weapon_exclusivity,shop,Big Sword XOR Big Axe,Big Sword XOR Big Axe,rule,Preserved. Half-refund on sidegrade swap.
+shield_exclusivity,shop,Buckler XOR Shield,Buckler XOR Shield,rule,Preserved.
+armour_exclusivity,shop,Spiky XOR Magical,Spiky XOR Magical,rule,Preserved.
+shop_interact_range_m,shop,n/a,2,meters,NEW. Player must be within 2m of shopkeeper NPC to open radial menu.
+shop_time_scale_on_open,shop,n/a,0.1,fraction,NEW. World slows to 10% speed on shop interact (soft pause; enemies still creep).
+parry_window_ms,combat,n/a,200,ms,"NEW. Standard parry window = monster strike frame. Tuning 150-300; break <100 (unfair) or >500 (trivial)."
+parry_window_start_ms,combat,n/a,400,ms_after_telegraph_start,"NEW. Parry opens 400ms after telegraph begins (i.e., 200ms before strike lands). Tuning 300-500; break <200 or >700."
+perfect_parry_ms,combat,n/a,80,ms,"NEW. First 80ms of the strike frame = perfect parry (cancels all incoming hits). Tuning 50-120; break <30 or >160."
+parry_stun_duration_ms,combat,n/a,500,ms,"NEW. Successful parry stuns monster this long. Its guard drops → Opening window active."
+dodge_iframes_ms,combat,n/a,350,ms,"NEW. Invulnerable roll window. Tuning 250-500; break <150 or >700."
+dodge_recovery_ms,combat,n/a,400,ms,NEW. Post-dodge recovery where player cannot attack.
+dodge_cooldown_ms,combat,n/a,700,ms,"NEW. Full cooldown from dodge-start to next dodge-ready. Tuning 500-1000; break <300 or >1400."
+monster_telegraph_ms,combat,n/a,600,ms,"NEW. Monster windup duration. Constant across monster types; visual tell scales with AD. Tuning 400-900; break <250 (reaction test) or >1200 (boring)."
+monster_strike_frame_ms,combat,n/a,200,ms,NEW. Active damage frame after telegraph. Equal to parry_window_ms.
+monster_windup_ms,combat,n/a,400,ms,NEW. Alt phrasing of the pre-telegraph body movement (charging tell).
+monster_recovery_ms,combat,n/a,300,ms,NEW. Post-strike recovery during which monster's guard is naturally down.
+opening_duration_ms,combat,n/a,1000,ms,"NEW. Opening window during which a connecting player hit counts. Tuning 600-1400; break <400 or >2000."
+player_swing_windup_ms,combat,n/a,300,ms,NEW. Player swing wind-up before hit frame.
+player_swing_cooldown_ms,combat,n/a,800,ms,NEW. Full swing-start to next-swing-ready. Matches monster telegraph cadence to create call-and-response.
+player_draw_weapon_ms,combat,n/a,400,ms,"NEW. Encounter start delay before player can swing (enforces ""monster attacks first"")."
+hit_stop_ms,animation,n/a,80,ms,"NEW. Frame-freeze on normal connecting hit. Kill hits: 80-120ms (scales with monster size). Spark hits: 30ms."
+parry_hit_stop_ms,animation,n/a,200,ms,NEW. Parry hit-stop. Longest freeze in the game - the hero moment.
+slowmo_on_kill_ms,animation,n/a,100,ms,NEW. Time scale 0.3x for 100ms on a kill hit.
+slowmo_on_parry_ms,animation,n/a,300,ms,NEW. Time scale 0.2x for 300ms on a successful parry.
+camera_shake_kill,animation,n/a,0.15,amplitude,"NEW. Small perpendicular shake, duration 150ms, on a kill."
+camera_shake_player_hit,animation,n/a,0.30,amplitude,"NEW. Larger radial shake, duration 250ms, when player takes a hit."
+dice_roll_animation_ms,animation,n/a,350,ms,"NEW. Dice tumble in tray and settle. Tuning 200-500; break <100 (illegible) or >700 (combat feels slow)."
+room_transition_ms,timing,n/a,300,ms,"NEW. Camera/lighting transition when entering a new room. Tuning 200-500; break <100 or >800."
+fog_reveal_ms,timing,n/a,250,ms,"NEW. Fog-of-war materialization as room contents appear. Tuning 150-400; break <80 or >600."
+first_aggro_grace_ms,timing,n/a,150,ms,NEW. Grace period after reveal before monster begins windup cycle.
+treasure_pickup_animation_ms,animation,n/a,200,ms,"NEW. Coin-vacuum animation + HUD tick. Tuning 100-350."
+potion_pickup_animation_ms,animation,n/a,200,ms,NEW. Bottle pickup + HUD slot fill.
+potion_drink_animation_ms,animation,n/a,500,ms,"NEW. Drink quaff duration. Player cannot swing/dodge during this. Tuning 300-800; break <150 (no commitment) or >1200 (unusable in combat)."
+death_cam_ms,animation,n/a,1500,ms,"NEW. Death slow-motion cam before ""RUN OVER"" screen."
+run_start_fadein_ms,animation,n/a,2000,ms,NEW. Ambient fade-in at run start.
+map_overlay_toggle_key,feel,n/a,V,keybind,"NEW. Toggle map/reachability overlay. Source had pen-and-paper ""always visible"" - we condense to a toggle."
+fps_target,timing,n/a,60,fps,"NEW. Render/sim target. 16.67ms per frame. Break <30 (sluggish) or >144 (diminishing)."
+tick_rate_ms,timing,n/a,16.67,ms_per_frame,NEW. Derived from fps_target.
+match_target_duration_s,timing,n/a,1200,seconds,"NEW. Median run length ~20 min. Range 900-1800 (15-30 min). Break <600 (too short for arc) or >2700 (too long for session)."
+boss_fight_duration_s,timing,n/a,90,seconds,"NEW. Target Dracular TTK. Range 60-180; break <30 (anticlimax) or >300 (exhausting)."
+normal_mob_ttk_s,timing,n/a,2.5,seconds,"NEW. Target time-to-kill for normal mobs. Range 1.5-3.5; break <1 or >6."
+room_clear_time_s,timing,n/a,15,seconds,"NEW. Average time from room entry to clear. Range 8-45 depending on content."
+dracular_phases,combat,n/a,3,phases,NEW. The Count / The Bat / The Lord. Each ends on 1 connecting hit.
+dracular_phase1_duration_s,combat,n/a,30,seconds,"NEW. ""The Count"" phase target. Range 20-60."
+dracular_phase2_duration_s,combat,n/a,30,seconds,"NEW. ""The Bat"" phase target. Range 20-60."
+dracular_phase3_duration_s,combat,n/a,30,seconds,"NEW. ""The Lord"" phase target. Range 20-60."
+damage_per_hit_cap,combat,n/a,3,hearts,"NEW (FP-1 mitigation). No single hit drops more than 3 pips regardless of dice roll. Extra hits → knockback intensity."
+pity_heart_threshold,combat,n/a,5,hearts,"NEW (FP-1). If damage would drop player from >5 to 0, survives at 1 pip with i-frames instead."
+pity_heart_cooldown,combat,n/a,3,rooms,NEW. Pity heart only triggers once every 3 monster rooms.

@@ -1,0 +1,135 @@
+flowchart TD
+    %% =====================================================
+    %% Solo Dungeon Dash — Real-Time Game Loop
+    %% Four nested loops: Frame-tick / Combat beat / Room / Run
+    %% =====================================================
+
+    Boot["Main Menu<br/>New Run / Continue / Bestiary"]:::started
+    Boot --> RunStart
+
+    %% ---------- RUN LOOP ----------
+    subgraph RUN_LOOP ["Run Loop — one match (~20 min median)"]
+        direction TB
+        RunStart["Run Start<br/>HP=17, 1AD/1DD, 0 Treasure, 0 Potions<br/>Seed 9x10 dungeon, place on Start cell"]:::started
+        RunStart --> FadeIn["2s fade-in<br/>Highlight first 3 legal moves"]
+        FadeIn --> EarlyArc["EARLY ARC rows 1-3<br/>Low AD mobs, find first Shop Shrine"]
+        EarlyArc --> MidArc["MID ARC rows 4-7<br/>Mid-tier mobs, potion farming, gear up"]
+        MidArc --> DeepArc["DEEP ARC rows 8-10<br/>High AD mobs, reachability tight"]
+        DeepArc --> BossApproach["Approach End room<br/>Warning music, boss door glow"]
+        BossApproach --> BossRoom
+    end
+
+    %% ---------- ROOM LOOP ----------
+    subgraph ROOM_LOOP ["Room Loop — per room (~15-45s)"]
+        direction TB
+        NextRoomPick{"Doorway picker<br/>8 king-adjacent unvisited cells<br/>Hover to see content fog"}
+        NextRoomPick -->|No legal move<br/>OR End unreachable via BFS| LoseBlocked["LOSS<br/>Blocked / Stranded"]:::lose
+        NextRoomPick -->|Player commits<br/>cancel window 120ms| CrossDoorway["Cross doorway<br/>Previous cell seals behind<br/>floor collapse VFX"]
+        CrossDoorway --> FogDissolve["Fog dissolve 250ms<br/>Camera settles on octagonal room"]
+        FogDissolve --> IdentifyContent{"Room content<br/>(pre-seeded at run start)"}
+
+        IdentifyContent -->|Empty| EmptyRoom["Empty dust<br/>Ambient hum<br/>Player may idle-think"]
+        IdentifyContent -->|Treasure| TreasurePickup["Auto-pickup<br/>Sparkle VFX<br/>Treasure +1 300ms juice"]
+        IdentifyContent -->|Potion| PotionPickup["Auto-pickup<br/>Bottle VFX<br/>Potions +1 300ms juice"]
+        IdentifyContent -->|Shop Shrine| ShopShrine["Shop Shrine<br/>Time pauses world<br/>Spend Treasure on 3 slots + potions"]
+        IdentifyContent -->|Monster| CombatLock["ROOM LOCKS<br/>Walls glow red<br/>Doorways shimmer shut<br/>Aggro at t+400ms, grace 150ms"]
+
+        EmptyRoom --> RoomResolved
+        TreasurePickup --> RoomResolved
+        PotionPickup --> RoomResolved
+        ShopShrine --> RoomResolved
+        CombatLock --> Combat_Entry
+
+        RoomResolved["Room resolved<br/>Walls dim, doorways open<br/>Ink-line drawn to this cell"]
+        RoomResolved --> PotionChoice{"Use Potion?<br/>Q hotkey, 1 quaff 150ms<br/>disabled in lock"}
+        PotionChoice -->|Yes| Quaff["Drink: HP+1 per quaff<br/>cap 17, vuln 100ms"]
+        Quaff --> PotionChoice
+        PotionChoice -->|No / done| NextRoomPick
+    end
+
+    %% ---------- COMBAT BEAT LOOP ----------
+    subgraph COMBAT_BEAT ["Combat Beat Loop — Roll-and-Parry (~1.5s per beat)"]
+        direction TB
+        Combat_Entry["Combat begin<br/>Monster turns to face player<br/>Dice Tray slides in bottom-right"]
+        Combat_Entry --> BeatStart["BEAT START t=0ms"]
+        BeatStart --> Telegraph["Monster Telegraph<br/>t=0ms windup anim<br/>scaled to AD count"]
+        Telegraph --> ParryOpen["Parry window opens<br/>t=400ms"]
+        ParryOpen --> PlayerInput{"Player input?<br/>Parry LMB / Dodge Space / wait"}
+
+        PlayerInput -->|Parry in 400-480ms<br/>PERFECT| PerfectParry["PERFECT PARRY<br/>Cancel all incoming hits<br/>Monster staggered<br/>Opening 1200ms"]
+        PlayerInput -->|Parry in 480-600ms<br/>normal| NormalParry["Normal parry<br/>Roll DD pool, count 6s<br/>Monster enters Opening 1000ms"]
+        PlayerInput -->|Dodge roll in window| DodgeRoll["Dodge roll<br/>iframes 300ms<br/>No Opening triggered"]
+        PlayerInput -->|No input / mistime| AutoDefend["Auto-defend at t=600ms<br/>Roll DD pool, count 6s"]
+
+        PerfectParry --> OpeningWindow
+        NormalParry --> StrikeResolve["Strike resolves t=700ms<br/>Unblocked hits -> HP pips"]
+        AutoDefend --> StrikeResolve
+        DodgeRoll --> MonsterRecover
+
+        StrikeResolve --> HPCheck{"HP <= 0?"}
+        HPCheck -->|Yes| LoseDead["LOSS<br/>Player Dead<br/>1.5s death cam"]:::lose
+        HPCheck -->|No| OpeningWindow
+
+        OpeningWindow["OPENING t=1000ms+<br/>Guard down 1000ms<br/>Enemy vulnerable"]
+        OpeningWindow --> SwingInput{"Player swing?<br/>LMB quick / hold charge 400ms"}
+        SwingInput -->|Quick swing| QuickSwing["Quick swing 300ms windup<br/>Roll AD pool in Dice Tray"]
+        SwingInput -->|Charged swing| ChargedSwing["Charged swing 400ms<br/>Roll AD with advantage<br/>reroll 1 die"]
+        SwingInput -->|No swing in window| MissOpening["Miss opening<br/>Monster recovers"]
+
+        QuickSwing --> DiceTrayRoll
+        ChargedSwing --> DiceTrayRoll
+        DiceTrayRoll["DICE TRAY ROLL<br/>3D physics dice tumble 500ms<br/>Count 6s = Hits"]
+        DiceTrayRoll --> HitCount{"Any 6s?"}
+        HitCount -->|0 hits| GuardSpark["Guard Spark<br/>Clang VFX, no damage<br/>back to BeatStart"]
+        HitCount -->|1+ hit in Opening| KillCheck{"Boss block frame?<br/>shimmer 400ms"}
+        KillCheck -->|Normal mob| MobKill["MOB DIES<br/>1 HP, one clean hit kills<br/>cleave extra 6s"]
+        KillCheck -->|Boss shimmer hit| BossBlock["Roll boss DD 9d6<br/>count 6s, cancel hits"]
+        BossBlock --> BossHPCheck{"Any hit leaks?"}
+        BossHPCheck -->|No| BossSurvive["Boss survives<br/>next pattern"]
+        BossHPCheck -->|Yes| BossDead["BOSS PHASE DOWN"]
+
+        MissOpening --> MonsterRecover
+        GuardSpark --> MonsterRecover
+        BossSurvive --> MonsterRecover
+        MonsterRecover["Monster recovers<br/>t=2000ms+ next beat"]
+        MonsterRecover --> BeatStart
+
+        MobKill --> CombatEnd["Combat ends<br/>Room unlocks"]
+    end
+
+    CombatEnd --> RoomResolved
+
+    %% ---------- BOSS ----------
+    BossRoom["End Room — Dracular<br/>Nine Dice Duel ~90s"]
+    BossRoom --> BossCombat["Boss combat phases<br/>Fast Jab 400ms / Heavy Slam 1000ms / AoE Spin 1500ms<br/>Each pattern rolls 9 AD vs player 9 DD"]
+    BossCombat --> Combat_Entry
+    BossDead --> BossPhaseCheck{"All phases down?"}
+    BossPhaseCheck -->|More phases| BossCombat
+    BossPhaseCheck -->|Final| WinGame["VICTORY<br/>Dungeon Cleared<br/>3s win cam"]:::win
+
+    %% ---------- ATOMIC FRAME TICK ----------
+    subgraph FRAME_TICK ["Atomic Loop — Frame Tick (16.67ms @ 60fps)"]
+        direction LR
+        Tick_Input["Input Poll<br/>WASD / LMB / Space / Q"]
+        Tick_Input --> Tick_Update["Update Physics<br/>Player pos, velocity"]
+        Tick_Update --> Tick_AI["Update AI<br/>Monster beat state machine"]
+        Tick_AI --> Tick_Collide["Collision<br/>Swing arcs, hurtboxes"]
+        Tick_Collide --> Tick_Render["Render<br/>Sprites, HUD, Dice Tray, VFX"]
+        Tick_Render --> Tick_Audio["Audio tick<br/>music layer, SFX bus"]
+        Tick_Audio --> Tick_Input
+    end
+
+    %% ---------- TERMINAL STATES ----------
+    LoseDead --> Summary["Run Summary<br/>Died on row N<br/>Killed by Wizard / Demon / etc<br/>Rooms cleared, mobs killed"]
+    LoseBlocked --> Summary
+    WinGame --> Summary
+    Summary --> Boot
+
+    %% ---------- STYLING ----------
+    classDef started fill:#c8e6c9,stroke:#2e7d32,color:#000,stroke-width:2px
+    classDef lose fill:#ffcdd2,stroke:#c62828,color:#000,stroke-width:2px
+    classDef win fill:#fff59d,stroke:#f9a825,color:#000,stroke-width:2px
+
+    class RunStart,Boot started
+    class LoseBlocked,LoseDead lose
+    class WinGame win

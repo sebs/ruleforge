@@ -1,0 +1,289 @@
+%% Solo Dungeon Dash — System Architecture Diagram
+%% Companion to SystemArchitecture.md (§18)
+%% Rendered with Mermaid 10+. Use a desktop viewer; the diagram is dense.
+
+flowchart TB
+
+    %% ====================================================================
+    %% PLATFORM LAYER
+    %% ====================================================================
+    subgraph PLATFORM["Platform Layer"]
+        OS_PC["Windows / Linux / macOS"]:::platform
+        OS_DECK["Steam Deck (Linux native)"]:::platform
+        OS_MOB["iOS / Android"]:::platform
+        GODOT["Godot 4.3 Runtime"]:::platform
+        STEAMSDK["Steam SDK (GDExtension)"]:::platform
+        ICLOUD["iCloud Documents"]:::platform
+        GPGS["Google Play Games Services"]:::platform
+    end
+
+    %% ====================================================================
+    %% ENGINE SYSTEMS
+    %% ====================================================================
+    subgraph ENGINE["Engine Systems (Godot)"]
+        SCENE_TREE["SceneTree"]:::engine
+        PHYS_SERVER["PhysicsServer2D"]:::engine
+        RENDER_SERVER["RenderingServer"]:::engine
+        AUDIO_SERVER["AudioServer"]:::engine
+        INPUT_SINGLETON["Input Singleton"]:::engine
+        FILE_ACCESS["FileAccess / DirAccess"]:::engine
+        WORKER_POOL["WorkerThreadPool"]:::engine
+        RES_LOADER["ResourceLoader"]:::engine
+    end
+
+    %% ====================================================================
+    %% GAME SYSTEMS (autoloads + Dungeon subtree)
+    %% ====================================================================
+    subgraph GAME_SYS["Game Systems"]
+        GAME_TICK["GameTick (orchestrator)"]:::sysauto
+        RENDER_TICK["RenderTick"]:::sysauto
+        INPUT_SYS["InputSystem"]:::sysauto
+        TIME_SYS["TimeSystem"]:::sysauto
+        RNG["RNG (7 sub-streams)"]:::sysauto
+        SETTINGS["Settings"]:::sysauto
+        LOCAL["Localization"]:::sysauto
+        CATALOG["Catalog (items, monsters, tables)"]:::sysauto
+        BALANCE["Balance (constants)"]:::sysauto
+
+        SCENE_MGR["SceneManager"]:::sysdung
+        DUNGEON_GEN["DungeonGenerator"]:::sysdung
+        ROOM_MGR["RoomManager"]:::sysdung
+        REACH["ReachabilityChecker (BFS)"]:::sysdung
+        PLAYER_CTRL["PlayerController"]:::sysdung
+        ENEMY_AI["EnemyAI"]:::sysdung
+        COMBAT_SYS["CombatSystem"]:::sysdung
+        DICE_TRAY["DiceTraySystem"]:::sysdung
+        ECON_SYS["EconomySystem"]:::sysdung
+        SHOP_SYS["ShopSystem"]:::sysdung
+    end
+
+    %% ====================================================================
+    %% GAME LOGIC (FSMs + pure rules)
+    %% ====================================================================
+    subgraph LOGIC["Game Logic / FSMs"]
+        PLAYER_FSM["Player FSM"]:::logic
+        ENEMY_FSM["Enemy FSM"]:::logic
+        COMBAT_FSM["Combat Beat FSM"]:::logic
+        SCENE_FSM["Scene FSM"]:::logic
+        RULES_ENG["RulesEngine (pure fn)"]:::logic
+        ENEMY_BEHAVIORS["11 Enemy Behaviour Subclasses"]:::logic
+        BOSS_PATTERN["Dracular Pattern Stack"]:::logic
+    end
+
+    %% ====================================================================
+    %% UI / PRESENTATION
+    %% ====================================================================
+    subgraph UI["UI / Presentation"]
+        HUD["HUDSystem"]:::ui
+        HEARTS["HeartsDisplay"]:::ui
+        DICE_UI["DiceTrayUI"]:::ui
+        MAP_OVERLAY["MapOverlay"]:::ui
+        POTION_UI["PotionDisplay"]:::ui
+        REACH_WARN["ReachabilityWarning"]:::ui
+        CAMERA["CameraController"]:::ui
+        ANIM_SYS["AnimationSystem"]:::ui
+        VFX_SYS["VFXSystem (pools)"]:::ui
+        MENUS["MainMenu / PauseMenu / Settings"]:::ui
+        TUTORIAL["TutorialRoom"]:::ui
+        END_SCREEN["EndScreen"]:::ui
+        DEBUG_OVERLAY["DebugOverlay (F3)"]:::ui
+    end
+
+    %% ====================================================================
+    %% DATA LAYER
+    %% ====================================================================
+    subgraph DATA["Data Layer"]
+        LEVEL_TABLES["level_tables.json"]:::data
+        MONSTERS_JSON["monsters.json"]:::data
+        ITEMS_JSON["items.json"]:::data
+        BALANCE_JSON["balance.json"]:::data
+        STRINGS["strings.csv (i18n)"]:::data
+        AUDIO_MANIFEST["audio_manifest.json"]:::data
+        SAVE_CURRENT["user://runs/current.json"]:::data
+        SAVE_BAK["user://runs/current.bak"]:::data
+        SETTINGS_FILE["user://settings.json"]:::data
+        BESTIARY["user://bestiary.json"]:::data
+        ACHIEVE_FILE["user://achievements.json"]:::data
+        TELEM_QUEUE["user://telemetry_queue.json"]:::data
+        CRASH_LOG["user://logs/latest.log"]:::data
+    end
+
+    %% ====================================================================
+    %% SERVICES
+    %% ====================================================================
+    subgraph SERVICES["Services"]
+        SAVE_SYS["SaveSystem (async, atomic)"]:::service
+        TELEM["Telemetry (opt-in)"]:::service
+        ACHIEVE_TRACK["AchievementTracker"]:::service
+        AUDIO_MGR["AudioManager"]:::service
+    end
+
+    %% ====================================================================
+    %% PLATFORM -> ENGINE
+    %% ====================================================================
+    OS_PC --> GODOT
+    OS_DECK --> GODOT
+    OS_MOB --> GODOT
+    GODOT --> SCENE_TREE
+    GODOT --> PHYS_SERVER
+    GODOT --> RENDER_SERVER
+    GODOT --> AUDIO_SERVER
+    GODOT --> INPUT_SINGLETON
+    GODOT --> FILE_ACCESS
+    GODOT --> WORKER_POOL
+    GODOT --> RES_LOADER
+    STEAMSDK --> ACHIEVE_TRACK
+    STEAMSDK --> SAVE_SYS
+    ICLOUD --> SAVE_SYS
+    GPGS --> SAVE_SYS
+
+    %% ====================================================================
+    %% ENGINE -> GAME SYSTEMS
+    %% ====================================================================
+    SCENE_TREE -- "physics_frame" --> GAME_TICK
+    SCENE_TREE -- "process_frame" --> RENDER_TICK
+    INPUT_SINGLETON -- "events" --> INPUT_SYS
+    PHYS_SERVER -- "Area2D overlaps" --> COMBAT_SYS
+    RENDER_SERVER -- "draw" --> HUD
+    RENDER_SERVER -- "draw" --> VFX_SYS
+    RENDER_SERVER -- "draw" --> CAMERA
+    AUDIO_SERVER -- "mix" --> AUDIO_MGR
+    FILE_ACCESS -- "read/write" --> SAVE_SYS
+    WORKER_POOL -- "async I/O" --> SAVE_SYS
+    RES_LOADER -- "load threaded" --> SCENE_MGR
+
+    %% ====================================================================
+    %% GAME TICK -> SYSTEMS (explicit call order)
+    %% ====================================================================
+    GAME_TICK -- "01 tick" --> INPUT_SYS
+    GAME_TICK -- "02 tick" --> TIME_SYS
+    GAME_TICK -- "03 tick" --> SCENE_MGR
+    GAME_TICK -- "04 tick" --> PLAYER_CTRL
+    GAME_TICK -- "05 tick" --> ENEMY_AI
+    GAME_TICK -- "06 tick" --> COMBAT_SYS
+    GAME_TICK -- "07 tick" --> DICE_TRAY
+    GAME_TICK -- "08 tick" --> REACH
+    GAME_TICK -- "09 tick" --> ECON_SYS
+    GAME_TICK -- "10 flush" --> SAVE_SYS
+
+    RENDER_TICK -- "tick" --> CAMERA
+    RENDER_TICK -- "tick" --> ANIM_SYS
+    RENDER_TICK -- "tick" --> HUD
+    RENDER_TICK -- "tick" --> VFX_SYS
+    RENDER_TICK -- "tick" --> AUDIO_MGR
+
+    %% ====================================================================
+    %% SYSTEM DEPENDENCIES (reads / writes / emits)
+    %% ====================================================================
+    INPUT_SYS -- "InputFrame" --> PLAYER_CTRL
+    TIME_SYS -- "dt, time_scale" --> PLAYER_CTRL
+    TIME_SYS -- "dt, time_scale" --> ENEMY_AI
+    TIME_SYS -- "hit-stop" --> VFX_SYS
+
+    SCENE_MGR --> SCENE_FSM
+    SCENE_MGR --> MENUS
+    SCENE_MGR --> TUTORIAL
+    SCENE_MGR --> END_SCREEN
+    SCENE_MGR -- "start_run" --> DUNGEON_GEN
+
+    DUNGEON_GEN -- "seed" --> RNG
+    DUNGEON_GEN -- "reads" --> LEVEL_TABLES
+    DUNGEON_GEN -- "reads" --> MONSTERS_JSON
+    DUNGEON_GEN -- "reads" --> BALANCE_JSON
+    DUNGEON_GEN -- "emits Grid" --> ROOM_MGR
+
+    ROOM_MGR -- "reads Grid" --> REACH
+    ROOM_MGR -- "room_entered" --> HUD
+    ROOM_MGR -- "room_entered" --> AUDIO_MGR
+    ROOM_MGR -- "room_cleared" --> SAVE_SYS
+    ROOM_MGR -- "room_cleared" --> ACHIEVE_TRACK
+
+    PLAYER_CTRL --> PLAYER_FSM
+    PLAYER_CTRL -- "cell_committed" --> REACH
+    PLAYER_CTRL -- "swing_edge" --> COMBAT_SYS
+    PLAYER_CTRL -- "parry_edge" --> COMBAT_SYS
+    PLAYER_CTRL -- "player_hurt" --> HUD
+    PLAYER_CTRL -- "player_hurt" --> CAMERA
+    PLAYER_CTRL -- "player_hurt" --> AUDIO_MGR
+
+    ENEMY_AI --> ENEMY_FSM
+    ENEMY_AI --> ENEMY_BEHAVIORS
+    ENEMY_BEHAVIORS --> BOSS_PATTERN
+    ENEMY_AI -- "reads" --> MONSTERS_JSON
+    ENEMY_AI -- "ai_behaviour stream" --> RNG
+    ENEMY_AI -- "telegraph/strike" --> COMBAT_SYS
+
+    COMBAT_SYS --> COMBAT_FSM
+    COMBAT_SYS -- "request_roll" --> DICE_TRAY
+    COMBAT_SYS -- "apply_damage" --> PLAYER_CTRL
+    COMBAT_SYS -- "kill" --> ENEMY_AI
+    COMBAT_SYS -- "calls" --> RULES_ENG
+    COMBAT_SYS -- "encounter events" --> AUDIO_MGR
+    COMBAT_SYS -- "hit vfx" --> VFX_SYS
+
+    DICE_TRAY -- "combat stream" --> RNG
+    DICE_TRAY -- "defence stream" --> RNG
+    DICE_TRAY -- "player_attack stream" --> RNG
+    DICE_TRAY -- "roll_finished" --> COMBAT_SYS
+    DICE_TRAY -- "visible dice" --> DICE_UI
+
+    ECON_SYS -- "reads" --> ITEMS_JSON
+    ECON_SYS -- "treasure/potion" --> HUD
+    ECON_SYS -- "inventory_changed" --> SHOP_SYS
+
+    SHOP_SYS -- "shop stream" --> RNG
+    SHOP_SYS -- "reads" --> ITEMS_JSON
+    SHOP_SYS -- "open/close" --> HUD
+    SHOP_SYS -- "pause during shop" --> TIME_SYS
+
+    REACH -- "run_lost_blocked" --> SCENE_MGR
+    REACH -- "warning state" --> REACH_WARN
+
+    %% ====================================================================
+    %% UI WIRING
+    %% ====================================================================
+    HUD --> HEARTS
+    HUD --> DICE_UI
+    HUD --> MAP_OVERLAY
+    HUD --> POTION_UI
+    HUD --> REACH_WARN
+    HUD --> DEBUG_OVERLAY
+    CAMERA -- "map mode" --> MAP_OVERLAY
+    ANIM_SYS -- "drives" --> PLAYER_CTRL
+    ANIM_SYS -- "drives" --> ENEMY_AI
+    VFX_SYS -- "camera shake" --> CAMERA
+
+    %% ====================================================================
+    %% DATA + SERVICES
+    %% ====================================================================
+    CATALOG -- "loads" --> LEVEL_TABLES
+    CATALOG -- "loads" --> MONSTERS_JSON
+    CATALOG -- "loads" --> ITEMS_JSON
+    CATALOG -- "loads" --> BALANCE_JSON
+    BALANCE -- "wraps" --> BALANCE_JSON
+    LOCAL -- "loads" --> STRINGS
+    AUDIO_MGR -- "reads" --> AUDIO_MANIFEST
+
+    SAVE_SYS -- "write atomic" --> SAVE_CURRENT
+    SAVE_SYS -- "rollback" --> SAVE_BAK
+    SAVE_SYS -- "settings" --> SETTINGS_FILE
+    SAVE_SYS -- "bestiary" --> BESTIARY
+    SAVE_SYS -- "achievements" --> ACHIEVE_FILE
+    SAVE_SYS -- "snapshot RNG" --> RNG
+    TELEM -- "queue" --> TELEM_QUEUE
+    TELEM -- "opt-in events" --> SAVE_SYS
+    ACHIEVE_TRACK -- "unlock" --> ACHIEVE_FILE
+    ACHIEVE_TRACK -- "Steam API" --> STEAMSDK
+    SAVE_SYS -- "logs" --> CRASH_LOG
+
+    %% ====================================================================
+    %% CLASS DEFINITIONS (colour coding)
+    %% ====================================================================
+    classDef platform fill:#2b2d42,stroke:#8d99ae,color:#edf2f4,stroke-width:2px
+    classDef engine   fill:#3a506b,stroke:#5bc0be,color:#ffffff,stroke-width:2px
+    classDef sysauto  fill:#1b998b,stroke:#2d6a4f,color:#ffffff,stroke-width:2px
+    classDef sysdung  fill:#2d6a4f,stroke:#95d5b2,color:#ffffff,stroke-width:2px
+    classDef logic    fill:#e76f51,stroke:#f4a261,color:#ffffff,stroke-width:2px
+    classDef ui       fill:#e9c46a,stroke:#f4a261,color:#1d3557,stroke-width:2px
+    classDef data     fill:#a4c3b2,stroke:#6b9080,color:#1d3557,stroke-width:2px
+    classDef service  fill:#9d4edd,stroke:#c77dff,color:#ffffff,stroke-width:2px

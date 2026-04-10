@@ -1,0 +1,58 @@
+parameter,category,source_value,digital_recommended,rationale
+starting_health,player_stat,17,17,Keep canonical; the 17-HP cap is central to pacing.
+health_cap,player_stat,17,17,Keep; the cap prevents stockpiled potions from trivializing the game.
+starting_attack_dice,player_stat,1,1,Keep; starting weak and buying up is core progression.
+starting_defence_dice,player_stat,1,1,Keep canonical.
+die_success_threshold,combat,6 (of 1-6),6,Keep; 1/6 success rate defines combat volatility.
+monster_hp_default,combat,1,1,Keep; 1-HP monsters + lethal-on-hit is a signature.
+dracular_hp,combat,1,1,Keep; boss toughness comes from DD not HP.
+dracular_attack_dice,combat,9,9,Keep.
+dracular_defence_dice,combat,9,9,Keep.
+grid_width,dungeon,9,9,Keep; the 9-wide grid balances path flexibility with constraint.
+grid_height,dungeon,10,10,Keep; exactly one row per level keeps the table mapping trivial.
+total_normal_rooms,dungeon,90,90,Derived.
+adjacency_type,dungeon,8-way king,8-way king,Keep; diagonals enable interesting routing.
+revisit_allowed,dungeon,false,false,Keep; core to the self-blocking puzzle.
+min_path_length,dungeon,11,11,Derived (straight ascent through middle column).
+monster_l1_max_attack_dice,monster,1,1,Keep; soft opening ramp.
+monster_l10_max_attack_dice,monster,10,10,Keep; peak pre-boss.
+monster_progression_delta_per_level,monster,+1 top-tier AD,+1,Keep; the slide is smooth and learnable.
+monster_l1_monster_probability,monster,3/6 (50%),50%,Keep (Orc on 2-4).
+monster_l2_monster_probability,monster,2/6 (33%),33%,Keep (L2 is unusually safe).
+monster_l3_monster_probability,monster,3/6 (50%),50%,Keep.
+monster_l4_monster_probability,monster,4/6 (67%),67%,Keep.
+monster_l5_monster_probability,monster,4/6 (67%),67%,Keep.
+monster_l6_monster_probability,monster,4/6 (67%),67%,Keep.
+monster_l7_monster_probability,monster,4/6 (67%),67%,Keep.
+monster_l8_monster_probability,monster,4/6 (67%),67%,Keep.
+monster_l9_monster_probability,monster,4/6 (67%),67%,Keep.
+monster_l10_monster_probability,monster,4/6 (67%),67%,Keep.
+treasure_probability_default,economy,1/6 (17%),17%,Keep; flat treasure faucet across all levels.
+potion_probability_l1,economy,1/6 (17%),17%,Keep; early-game healing faucet.
+potion_probability_l3,economy,1/6 (17%),17%,Keep.
+potion_probability_l6,economy,1/6 (17%),17%,Keep.
+potion_probability_l9,economy,1/6 (17%),17%,Keep; deep-level healing lifeline.
+potion_to_hp_ratio,economy,1:1,1:1,Keep.
+buckler_cost,shop,1,1,Keep; cheap defensive entry tier.
+buckler_defence_bonus,shop,1,1,Keep.
+shield_cost,shop,2,2,Keep.
+shield_defence_bonus,shop,2,2,Keep; 2x buckler for 2x cost is linear and fair.
+potion_single_cost,shop,1,1,Keep.
+potion_triple_cost,shop,2,2,Keep; 50% discount for buying in bulk.
+potion_six_cost,shop,3,3,Keep; 2T per 3-pack encourages mid-run stockpiling.
+big_sword_cost,shop,3,3,Keep.
+big_sword_attack_bonus,shop,1,1,Keep.
+big_axe_cost,shop,4,4,Keep.
+big_axe_attack_bonus,shop,2,2,Keep; 2AD for 4T = 2T/AD (same as sword).
+spiky_armour_cost,shop,5,5,Keep.
+spiky_armour_attack_bonus,shop,2,2,Keep.
+spiky_armour_defence_bonus,shop,1,1,Keep; hybrid item justifies its higher cost.
+magical_armour_cost,shop,6,6,Keep.
+magical_armour_defence_bonus,shop,5,5,Keep; strong endgame item.
+weapon_exclusivity,shop,Big Sword XOR Big Axe,Big Sword XOR Big Axe,Keep; otherwise weapons trivialize.
+shield_exclusivity,shop,Buckler XOR Shield,Buckler XOR Shield,Keep.
+armour_exclusivity,shop,Spiky XOR Magical,Spiky XOR Magical,Keep (see A-3 for stacking with shields).
+bought_potion_delay,economy,usable next turn,next turn,Keep; prevents instant-heal panic purchases.
+flee_combat,combat,not allowed,not allowed,Keep; forced commitment makes rooms meaningful.
+max_attack_dice_pool,combat,5 (derived),5,1 base + 2 Big Axe + 2 Spiky Armour.
+max_defence_dice_pool,combat,7-8 (derived),7,1 base + 2 Shield + 5 Magical Armour if A-3 literal OR 1 base + 1 Spiky + 2 Shield + 5 Magical is excluded.

@@ -1,0 +1,41 @@
+parameter,category,current_value,units,safe_range_low,safe_range_high,break_below,break_above,impact_on,notes
+parry_window_ms,combat,200,ms,150,300,100,500,player skill expression,tighten for hard mode; widest impact on perceived difficulty
+monster_telegraph_ms,combat,600,ms,400,800,300,1200,reaction difficulty,longer = more generous; keep synced with parry_window_ms
+player_move_speed_m_per_s,movement,4.0,m/s,3.0,5.0,2.0,7.0,room traversal and dodge feel,below 2 = sluggish; above 7 = uncontrollable
+starting_hp,player,17,hearts,15,20,12,24,run survivability,source canonical is 17 — do not change lightly
+starting_attack_dice,player,1,dice,1,1,0,3,combat DPS floor,source says 1; starting at 0 kills first-encounter skill check
+starting_defence_dice,player,1,dice,1,2,0,4,early survivability,Easy mode raises to 2
+dice_success_threshold,combat,6,pip value,6,6,5,5,all combat math,CATASTROPHIC if changed — requires full rebalance
+hp_cap,player,17,hearts,15,20,12,24,potion stockpiling ceiling,must scale with starting_hp
+dracular_attack_dice,boss,9,dice,8,10,5,12,boss threat,±1 swings boss win rate by ~8 points
+dracular_defence_dice,boss,9,dice,8,10,5,12,boss fight duration,±1 swings fight duration by ~15 seconds
+dracular_phase_count,boss,3,phases,2,3,1,4,boss complexity,3 is canonical; 2 feels short; 4+ is exhausting
+dracular_fight_target_s,boss,90,seconds,60,150,30,240,boss pacing,median fight duration target
+per_hit_damage_cap,combat,3,pips,2,4,1,6,catastrophic roll protection,caps Demon 10-AD spikes; relaxed on Hard/Nightmare
+treasure_probability,economy,0.167,prob,0.15,0.25,0.10,0.30,gear progression rate,1/6 matches source; Easy raises to 0.20
+potion_probability,economy,0.167,prob,0.15,0.25,0.10,0.30,mid-run healing supply,only applies to L1/3/6/9 rows
+potion_to_hp_ratio,economy,1,hp per potion,1,1,0.5,2,potion value,source is 1:1; 1:2 makes potions OP
+max_potions_carried,economy,10,count,6,12,3,20,potion hoarding limit,caps degenerate hoard strategy at 52% win rate
+shop_shrine_frequency,economy,0.125,prob per room,0.083,0.167,0.067,0.20,shop access pacing,1 shrine per 8 rooms
+grid_width,dungeon,9,tiles,7,11,5,15,dungeon size and routing,source canonical 9x10
+grid_height,dungeon,10,tiles,8,12,5,15,dungeon depth,source canonical 9x10
+monster_l1_max_ad,monster,1,dice,1,2,0,3,early difficulty floor,Orc tier
+monster_l5_max_ad,monster,5,dice,4,6,2,8,mid difficulty scaling,Devil Bat tier
+monster_l10_max_ad,monster,10,dice,8,10,5,12,pre-boss difficulty peak,Demon tier; above 10 is unplayable without max gear
+monster_hp_default,monster,1,hp,1,1,1,3,kill economy,1-HP is signature feel; DO NOT change
+big_axe_cost,shop,4,treasure,3,5,2,7,weapon progression pace,source canonical 4
+big_axe_ad_bonus,shop,2,dice,2,2,1,3,max player DPS,+2 is critical for Dracular math
+shield_cost,shop,2,treasure,1,3,0,5,defensive entry price,source canonical 2
+shield_dd_bonus,shop,2,dice,2,2,1,3,mid-tier survivability,+2 is critical
+magical_armour_cost,shop,6,treasure,5,7,3,9,endgame economy sink,source canonical 6
+magical_armour_dd_bonus,shop,5,dice,5,5,3,7,max defense ceiling,+5 is central to the boss math
+spiky_armour_cost,shop,5,treasure,4,6,2,8,hybrid build price,source canonical 5
+potion_triple_cost,shop,2,treasure,2,3,1,4,bulk potion discount,source canonical 2 (3-pack for 2T)
+dodge_iframes_ms,combat,400,ms,300,500,200,800,dodge skill expression,Easy raises; Nightmare tightens
+dodge_cooldown_ms,combat,700,ms,500,900,300,1500,dodge-spam limiter,prevents chaining dodges through all rooms
+bought_potion_delay_ms,combat,20000,ms,15000,30000,5000,60000,shop exploit prevention,source rule: next-turn delay, translated to wall-clock
+boss_phase_transition_grace_ms,boss,500,ms,300,800,100,1500,phase readability,iframes during phase transitions
+monster_guard_down_duration_ms,combat,400,ms,300,600,150,1000,opening window size,how long the kill-window stays open
+player_swing_duration_ms,combat,450,ms,350,600,200,900,attack speed feel,affects how many swings fit in an opening
+pity_heart_threshold,combat,5,pips,3,6,1,8,noob protection,if dropping from >N pips to 0, survive at 1
+pity_heart_cooldown_rooms,combat,3,rooms,2,5,1,10,pity use rate,prevents pity becoming a crutch

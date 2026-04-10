@@ -1,0 +1,78 @@
+flowchart LR
+    subgraph Inputs ["Dice (d6 pool)"]
+        D6[("d6")]
+    end
+
+    subgraph Board ["Dungeon Grid 9x10"]
+        Grid["Grid Cell (row, col)<br/>state: unvisited | visited | current"]
+        Start["Start Square"]
+        End["End Square"]
+        LevelTable["Level Table[row]<br/>d6 → content"]
+    end
+
+    subgraph Player ["Player State"]
+        HP["Health<br/>0..17"]
+        AD["Attack Dice<br/>1..5"]
+        DD["Defence Dice<br/>1..8"]
+        Treasure["Treasure<br/>0..n"]
+        Potions["Potions<br/>0..n"]
+    end
+
+    subgraph Inventory ["Inventory / Equipment"]
+        Weapon["Weapon Slot<br/>Big Sword XOR Big Axe"]
+        ShieldSlot["Shield Slot<br/>Buckler XOR Shield"]
+        ArmourSlot["Armour Slot<br/>Spiky XOR Magical"]
+    end
+
+    subgraph Encounters ["Room Entities"]
+        Monster["Monster<br/>name, AD, DD=0"]
+        Boss["Dracular<br/>AD=9, DD=9"]
+        TreasureRoom["Treasure Room"]
+        PotionRoom["Potion Room"]
+        Empty["Empty Room"]
+    end
+
+    D6 -- "rolled at step 2" --> LevelTable
+    LevelTable -- "produces" --> Monster
+    LevelTable -- "produces" --> TreasureRoom
+    LevelTable -- "produces" --> PotionRoom
+    LevelTable -- "produces" --> Empty
+
+    Grid -- "current row indexes" --> LevelTable
+    Start -- "initial position" --> Grid
+    Grid -- "reach to" --> End
+    End -- "forces encounter" --> Boss
+
+    TreasureRoom -- "+1" --> Treasure
+    PotionRoom -- "+1" --> Potions
+
+    Monster -- "triggers combat" --> HP
+    Boss -- "triggers combat" --> HP
+
+    D6 -- "rolled in combat" --> AD
+    D6 -- "rolled in combat" --> DD
+
+    AD -- "counts 6s, deals hits to" --> Monster
+    DD -- "counts 6s, cancels hits from" --> Monster
+    Monster -- "unblocked hits reduce" --> HP
+
+    Weapon -- "+AD modifier" --> AD
+    ShieldSlot -- "+DD modifier" --> DD
+    ArmourSlot -- "+AD and/or +DD modifier" --> AD
+    ArmourSlot -- "+DD modifier" --> DD
+
+    Treasure -- "spent at step 7 shop" --> Weapon
+    Treasure -- "spent at step 7 shop" --> ShieldSlot
+    Treasure -- "spent at step 7 shop" --> ArmourSlot
+    Treasure -- "spent at step 7 shop" --> Potions
+
+    Potions -- "converted 1:1 at step 6" --> HP
+
+    classDef entity fill:#e1f5fe,stroke:#0277bd,color:#000
+    classDef player fill:#c8e6c9,stroke:#2e7d32,color:#000
+    classDef inventory fill:#ffe0b2,stroke:#e65100,color:#000
+    classDef random fill:#f8bbd0,stroke:#ad1457,color:#000
+    class Monster,Boss,TreasureRoom,PotionRoom,Empty entity
+    class HP,AD,DD,Treasure,Potions player
+    class Weapon,ShieldSlot,ArmourSlot inventory
+    class D6 random

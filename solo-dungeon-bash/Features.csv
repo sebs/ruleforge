@@ -1,0 +1,46 @@
+feature_id,feature_name,category,priority,effort,description,dependencies
+F001,Grid Model,core,must,S,"9x10 grid with Start/End special squares; cell state unvisited/visited/current",
+F002,Grid Rendering,core,must,S,"SVG/Canvas grid with sketch-style aesthetic; clickable cells",F001
+F003,King-Adjacency Movement,core,must,S,"Legal-move detection (8-way) excluding visited cells",F001
+F004,Move Commit & Path Drawing,core,must,S,"Commit move, update current cell, draw ink trail between cells",F001;F002;F003
+F005,Level Table Data,core,must,S,"11 level tables (L1-L10 + Boss) as data asset",
+F006,Room Content Roll,core,must,S,"Roll 1d6 against the current row level table; return enum content",F005
+F007,Resource Counters,core,must,S,"HP/Treasure/Potions state with HP cap at 17",
+F008,Room Resolution,core,must,S,"Apply room content: +Treasure, +Potion, Empty, or trigger Combat",F006;F007
+F009,Combat FSM,core,must,M,"Alternating monster-player rounds; count-6 dice pools; defence cancels hits; kill check",F007
+F010,Combat Dice Visualization,core,must,M,"Animate dice roll; highlight 6s; show hit/block tally",F009
+F011,Potion Recovery Phase,core,must,S,"Step 6: convert Potions to HP up to cap",F007
+F012,Shop System,core,must,M,"Step 7: item catalog with costs; purchase flow; treasure deduction",F007
+F013,Item Slot Enforcement,core,must,S,"Weapon/Shield/Armour slots; exclusivity checks; greying out conflicts",F012
+F014,Derived Dice Pools,core,must,S,"AD/DD computed as base + inventory modifiers",F013
+F015,Potion Purchase Timing,core,must,S,"Bought potions usable on next turn only; separate available/pending counters",F011;F012
+F016,Blocked-Path Detection,core,must,S,"BFS reachability from current cell to End via unvisited cells; triggered on move commit",F001;F003
+F017,Win/Loss State Machine,core,must,S,"Detect death, block, and boss-kill; route to end-game screen",F009;F016
+F018,Turn Sequence Controller,core,must,M,"Enforce the 7-step turn order as an FSM; transition rules; no out-of-order actions",F003;F008;F009;F011;F012
+F019,Player HUD,core,must,S,"Persistent display of HP, AD, DD, Treasure, Potions, current level, equipped items",F007;F014
+F020,Start Screen,core,must,S,"Main menu with Play, Tutorial, Settings",
+F021,End-of-Run Summary,core,must,S,"Show run stats: rooms visited, monsters killed, treasure earned, time elapsed, outcome",F017
+F022,Save Current Run,core,must,S,"Auto-save game state after every turn; resume from browser close",F018
+F023,Tutorial Flow,onboarding,must,M,"Scripted micro-run with seeded dice and guided tooltips",F018
+F024,First-Time Tooltips,onboarding,must,S,"Contextual one-shot hints on new-to-player events",F019
+F025,Help Screen,onboarding,should,S,"Static reference: turn order, monsters, items, win/lose conditions",
+F026,Seeded RNG,foundation,must,S,"Deterministic PRNG with exposed seed for replays and daily challenges",
+F027,Dice Injection for Tests,foundation,must,S,"Test hook allowing fixed dice sequences for unit tests",F026
+F028,Monster Bestiary View,content,should,S,"Browsable list of encountered monsters with AD stats",
+F029,Confirmation Dialog on End Entry,polish,must,S,"Warn player before committing to the boss fight",F017
+F030,Undo Last Move (before roll),polish,should,S,"Revert the most recent move commit, only before content roll",F004
+F031,Run History Log,polish,should,S,"Per-run log of moves, combats, and purchases; viewable post-run",F021
+F032,Sound Effects,polish,should,M,"SFX for move, roll, hit, block, purchase, potion, boss encounter",
+F033,Background Music,polish,could,M,"Ambient dungeon music with boss-fight stinger",
+F034,Settings / Volume / Text Size,polish,should,S,"Accessibility and audio settings",
+F035,Daily Seed Challenge,live,could,M,"Everyone plays the same seed of the day; share-friendly outcome string",F026
+F036,Achievements,live,could,M,"Defeat Dracular no-hit; clear game with 0 potions used; etc",F021
+F037,Run Stats Database,live,could,S,"Per-player historical stats (local or cloud)",F031
+F038,Difficulty Modes,content,could,S,"Easy/Normal/Hard/Nightmare with tuned HP and boss stats",F007;F009
+F039,Daily Leaderboard,live,won't-v1,M,"Optional backend for daily seed leaderboard",F035
+F040,PWA / Offline Play,polish,should,S,"Service worker caching; playable offline",
+F041,Screen-Reader Combat Log,accessibility,should,M,"Accessible text narration of every dice roll and combat outcome",F010
+F042,Keyboard Navigation,accessibility,should,S,"Arrow keys + diagonals; full no-mouse play",F003
+F043,Color-Blind Safe Palette,accessibility,should,S,"Alternative palette for Treasure/Potion/Monster distinctions",F002
+F044,Sketch-Style Art Assets,polish,should,M,"Hand-drawn monster sketches, parchment backgrounds, ink line effects",
+F045,Procedural Dungeon Layout,content,won't-v1,L,"Grids of varying shape/size beyond 9x10",F001

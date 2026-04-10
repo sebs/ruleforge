@@ -1,0 +1,114 @@
+feature_id,feature_name,category,priority,effort,description,dependencies
+RT-F001,Fixed-Timestep Game Loop,core,must,M,"Deterministic fixed-timestep simulation (60 Hz) with decoupled variable-rate rendering; drives parry windows, dice physics, and enemy telegraphs with frame-independent precision",
+RT-F002,2D Sprite Renderer,core,must,M,"Top-down 2D sprite renderer with z-ordering, alpha blending, parallax-free room camera, hand-drawn parchment shader",
+RT-F003,Scene / State Machine,core,must,S,"Top-level state machine: Boot → MainMenu → Run → Pause → Results → Meta; clean transitions with fade-to-parchment",
+RT-F004,Input System,core,must,M,"Unified input abstraction: mouse+keyboard, Xbox/PS gamepad, touch; action-based bindings exposed to remap UI",RT-F003
+RT-F005,Save/Load System,core,must,M,"JSON save files: bestiary unlocks, settings, achievements, active-run snapshot for resume; atomic writes and schema-versioned migration",
+RT-F006,Asset Pipeline,core,must,S,"Texture atlas packing, sprite sheet slicing, audio bank loading, hot-reload in dev builds",
+RT-F007,Seeded RNG Service,core,must,S,"Deterministic PCG/xoshiro PRNG with named streams (dungeon/loot/combat); shareable seed string",
+RT-F008,Config / Data Loader,core,must,S,"Data-driven tables for monsters, items, rooms, level tiers loaded from JSON/TOML",RT-F006
+RT-F009,Debug Console,tools,should,S,"In-game debug console: spawn enemy, set seed, warp to boss, toggle godmode, inspect state",
+RT-F010,Procedural Dungeon Graph,core,must,L,"9x10 room graph with king-adjacency routing, Start + End tagged, biome progression; produced from run seed",RT-F007;RT-F008
+RT-F011,Reachability BFS Checker,core,must,S,"Live BFS from current cell to End across unvisited rooms; warning ping on commit that would strand the player",RT-F010
+RT-F012,Room Content Pre-Seed,core,must,S,"Contents pre-rolled per run from level tables (monster/treasure/potion/shrine/empty); stored in graph for determinism",RT-F007;RT-F010
+RT-F013,Room Transition / Door Seal,core,must,M,"Room-at-a-time camera; doors slam and seal behind player enforcing no-revisit; entry stinger audio",RT-F010
+RT-F014,Cell-Snapped Movement,core,must,S,"In-room movement on a fine sub-grid; soft-snap to 8-dir cells for tactile board-game feel",RT-F004
+RT-F015,Room Interior Layout,core,must,S,"Octagonal chamfered room template with obstacles, hazards, and pickup anchors generated per room type",RT-F010
+RT-F016,Map Overlay (V Toggle),ui,must,M,"Hold V / middle-click to pull up full 9x10 dungeon map; shows visited, current, reachability shading, content icons for revealed rooms",RT-F010;RT-F011
+RT-F017,Player Controller,combat,must,M,"Top-down character controller: walk, sprint, stop, face direction, idle sway; walk speed tuned to combat cadence",RT-F004;RT-F014
+RT-F018,Player Animation Set,graphics,must,M,"Player sprite anims: idle, walk, run, hit, parry, dodge-roll, drink potion, death, pickup, open shop",RT-F017
+RT-F019,Combat FSM,combat,must,L,"Per-encounter FSM: idle → draw-weapon → telegraph → parry-window → swing → recovery → cleanup; frame-accurate",RT-F001;RT-F017
+RT-F020,Parry System,combat,must,M,"~150-250 ms parry window during monster wind-up; success triggers stun + Opening; failure eats hit; window scalable for accessibility",RT-F019
+RT-F021,Dodge-Roll with I-Frames,combat,must,M,"Directional roll: ~300 ms i-frames, ~500 ms total; cooldown; does NOT trigger Opening",RT-F019
+RT-F022,Block / Posture Meter,combat,should,M,"Hold-to-block stance that drains posture meter; consumes defence dice; breaks under sustained fire",RT-F019
+RT-F023,Opening Window,combat,must,S,"Short ~400 ms vulnerability state on enemy after parry, dodged swing, or telegraph recovery; visual tell",RT-F019
+RT-F024,Dice Tray Renderer,combat,must,M,"Lower-right HUD dice tray with 3D-ish physics dice tumble; colored per side (player attack/defence, monster attack/defence)",RT-F002
+RT-F025,Dice Roll Animation,combat,must,S,"Tumble-settle animation ~0.5 s with audio clacks; 6s pulse gold",RT-F024
+RT-F026,Count-6 Damage Resolver,combat,must,S,"On swing contact, roll attack dice, count 6s: 0 = Guard Spark, 1+ during Opening = kill, extras = cleave",RT-F020;RT-F024
+RT-F027,Cleave System,combat,should,S,"Extra 6s propagate lethal hit to nearby enemies in a short arc; enables grouped-trash satisfaction",RT-F026
+RT-F028,Defence Dice Roll,combat,must,S,"On monster hit, simultaneously roll player DD in side tray; each 6 cancels a hit",RT-F024
+RT-F029,Heart Pip HUD,ui,must,S,"17 discrete heart pips top-left; shatter FX on loss; soft pulse at ≤5 remaining",RT-F002
+RT-F030,Damage Calculation,combat,must,S,"Per-AD-tier pip cost table (1-3 AD→1 pip, 7-8→2 pip, 9-10→2+DoT, Dracular up to 3 pip); per-hit 3-pip cap",RT-F029
+RT-F031,Pity Heart Safety,combat,should,S,"Once-per-encounter survival at 1 pip when a hit would overflow; cooldown of 3 monster rooms",RT-F030
+RT-F032,Hit-Stop & Screen Shake,combat,must,S,"Kill-hit and taken-hit freeze/shake recipe from ConflictModel §9",RT-F019
+RT-F033,Enemy AI Base FSM,ai,must,L,"Monster state machine: idle → aggro → telegraph → attack → guard → opening → recovery; data-driven per monster",RT-F019
+RT-F034,Monster Telegraph System,ai,must,M,"Distinct pre-attack animations + audio tells; tell duration scalable (accessibility); visible warning markers",RT-F033
+RT-F035,Monster Guard Cycle,ai,must,S,"Guard on/off states; hits during guard produce Guard Spark (no damage)",RT-F033
+RT-F036,Monster Pack Variants,ai,should,S,"Level 1-3 trash can spawn as pair/triple occupancy; coordinated AI with stagger",RT-F033
+RT-F037,Monster - Orc (AD1),content,must,S,"Slow club lunge, generous 800 ms tell; tutorial monster",RT-F033
+RT-F038,Monster - Wolf (AD2),content,must,S,"Fast leap with 300 ms crouch tell; dodge-roll teaching",RT-F033
+RT-F039,Monster - Skeleton (AD3),content,must,S,"Twitchy triple-swipe with rattle cue; reassembles once",RT-F033
+RT-F040,Monster - Evil Warrior (AD4),content,must,S,"Mirror-fighter that parries player; lowers stance before thrust",RT-F033
+RT-F041,Monster - Devil Bat (AD5),content,must,S,"Airborne figure-eights; vulnerable only at dive apex",RT-F033
+RT-F042,Monster - Cyclops (AD6),content,must,S,"Massive club sweeps with 1.2 s tell; long arena hitboxes",RT-F033
+RT-F043,Monster - Dark Elf (AD7),content,must,S,"Ranged 3-dart fan + short teleport; purple pre-teleport glow",RT-F033
+RT-F044,Monster - Skeleton Lord (AD8),content,must,M,"First phase-aware enemy; halberd sweeps + summons 2 skeleton adds",RT-F033;RT-F036
+RT-F045,Monster - Wizard (AD9),content,must,M,"Three projectile casts (bolt/orb/zone); color-coded; ranged-only",RT-F033
+RT-F046,Monster - Demon (AD10),content,must,M,"Pre-boss; fire cone + claw sweep + grab (3 pips); three-tell mastery",RT-F033
+RT-F047,Dracular Boss FSM,ai,must,L,"3-phase boss state machine: The Count → The Bat → The Lord; 1-hit-per-phase structure",RT-F033
+RT-F048,Dracular Phase 1 Moves,content,must,M,"Cape sweep (3-pip AoE), bite lunge, dark palm blast; crimson aura defence",RT-F047
+RT-F049,Dracular Phase 2 Moves,content,must,M,"Dive swoops, bat-swarm zone, bite grab; aura drops at dive apex",RT-F047
+RT-F050,Dracular Phase 3 Moves,content,must,M,"Shadow clone + throne Dracular; cross-arena lightning wave; clone-kill aura drop",RT-F047
+RT-F051,Dracular Aura Defence,combat,must,S,"Continuous spark-conversion field representing 9 DD; only drops during key windows",RT-F047
+RT-F052,Boss Arena,content,must,M,"Gothic throne hall with destructible pillars, stained-glass moonbeams, falling chandeliers",RT-F013
+RT-F053,Boss Music Stinger,audio,must,S,"Multi-phase boss track with cathedral bell parry hits and phase transitions",
+RT-F054,Shop Shrine Trigger,core,must,S,"Diegetic in-room shrine that opens the shop when stood on; no pause menu",RT-F015
+RT-F055,Shop UI,ui,must,M,"Radial/hotbar item purchase UI with costs, slot conflicts greyed, tooltip on hover",RT-F054
+RT-F056,Item Slot Exclusivity,core,must,S,"Weapon/Shield/Armour slots; purchasing a conflicting item blocks or replaces per rules",RT-F055
+RT-F057,Item - Big Sword,content,must,S,"+1 AD permanent; iconic curved blade",RT-F056
+RT-F058,Item - Big Axe,content,must,S,"+2 AD weapon upgrade",RT-F056
+RT-F059,Item - Buckler,content,must,S,"+1 DD small shield",RT-F056
+RT-F060,Item - Shield,content,must,S,"+2 DD upgrade",RT-F056
+RT-F061,Item - Spiky Armour,content,must,S,"+1 AD +1 DD hybrid",RT-F056
+RT-F062,Item - Magical Armour,content,must,S,"+3 DD late-game armour",RT-F056
+RT-F063,Potion System,combat,must,M,"Consumable with 0.4 s drink animation; +1 pip; hotkey Q quick-use; vulnerable during drink",RT-F019;RT-F029
+RT-F064,Potion Purchase Arming Delay,core,must,S,"Bought potions unusable for ~20 s after purchase (source next-turn rule); arming indicator ring",RT-F055;RT-F063
+RT-F065,Treasure Pickup,core,must,S,"Auto-magnet coin pickup on kill/chest with ting SFX and arc spill",
+RT-F066,Chest / Treasure Room,content,must,S,"Smashable chests rolled from treasure rooms; 2-5 gold each",RT-F065
+RT-F067,Safe Room Ambience,content,should,S,"Shop-shrine rooms and rest pauses with crackling fire and soft music",RT-F054
+RT-F068,Main Menu,ui,must,S,"Title, Play, Tutorial, Daily, Bestiary, Settings, Quit; parchment aesthetic",RT-F003
+RT-F069,HUD - Full Layout,ui,must,M,"Hearts, dice tray, treasure counter, potion slots, equipment icons, current level tag",RT-F029;RT-F024
+RT-F070,Pause Menu,ui,must,S,"ESC pause: resume, settings, abandon run, main menu; non-pausing in shop per FP-4",RT-F003
+RT-F071,End-of-Run Summary,ui,must,M,"Stats screen: outcome, time, rooms visited, monsters slain, damage taken, treasure, build; shareable text",RT-F005
+RT-F072,Bestiary / Codex,ui,should,M,"Unlockable per first kill; sprite, stats, lore, tells; browsable from menu",RT-F005
+RT-F073,Settings Menu,ui,should,M,"Audio, video, gameplay, accessibility tabs",RT-F070
+RT-F074,Run History & Stats,ui,should,M,"Per-player historical runs list with seed, outcome, duration, build",RT-F005;RT-F071
+RT-F075,Tutorial Overlay,onboarding,should,M,"Contextual overlays during first run: move, parry, dodge, shop, map, potion",RT-F077
+RT-F076,First-Time Tooltips,onboarding,should,S,"One-shot hints on first encounter of each feature",RT-F069
+RT-F077,Tutorial Scenario,onboarding,must,M,"Scripted 3-room micro-dungeon with seeded dice guaranteeing success; teaches the four core inputs",RT-F019;RT-F033
+RT-F078,Help / Reference Screen,onboarding,should,S,"Static reference: controls, monsters, items, win/lose",
+RT-F079,Hand-Drawn Sprite Set,graphics,must,XL,"Ink-on-parchment style sprites: player + 11 monsters + Dracular + items + UI chrome",
+RT-F080,Room Tilesets,graphics,must,L,"Dungeon tilesets with biome variants (crypt, cavern, library, throne hall); parchment palette",
+RT-F081,Animation Rigging,graphics,must,M,"Skeletal/sprite animation tooling; shared anim event hooks for hit-stop, sfx, particles",RT-F079
+RT-F082,VFX Library,graphics,must,M,"Sparks, blood-ink, parry flash, execution bloom, dust, fire cone, lightning wave",
+RT-F083,Ambient Dungeon SFX,audio,must,M,"Footsteps, drips, ambient loops per biome, door slams, chest smashes",
+RT-F084,Combat SFX,audio,must,M,"Parry ting, dodge whoosh, hit crunch, spark clang, dice clack, miss whiff, death cry",
+RT-F085,Music - Title,audio,must,S,"Hand-drawn, warm acoustic title theme",
+RT-F086,Music - Dungeon Ambient,audio,must,M,"Layered ambient dungeon music with tension tier for low HP",
+RT-F087,Music - Boss,audio,must,M,"Multi-phase Dracular track with transitions",RT-F053
+RT-F088,Cinematic - Intro,content,should,M,"Light 20 s hand-drawn intro slide sequence with narration",
+RT-F089,Cinematic - Outro,content,should,M,"Victory outro on Dracular defeat; death outro variant",RT-F071
+RT-F090,Bestiary Unlock,progression,should,S,"First-kill triggers unlock event; bestiary badge notification",RT-F072
+RT-F091,Achievement System,progression,should,M,"Unlock tracking + steam sync hooks; 20-30 achievements",RT-F005
+RT-F092,Daily Seed Mode,progression,could,M,"Shared seed per UTC day; separate leaderboard flag; shareable result string",RT-F007
+RT-F093,Cosmetic Unlocks,progression,could,M,"Character skins, dice skins, dungeon palettes unlocked by feat",RT-F091
+RT-F094,Difficulty Modes,progression,should,M,"Easy/Normal/Hard/Nightmare tuning tell durations, damage, boss phase length",RT-F034;RT-F047
+RT-F095,Ghost Run Overlay,progression,could,L,"Daily-seed asynchronous ghost runs from other players shown as spectral paths",RT-F092
+RT-F096,Screen Reader Combat Log,accessibility,should,M,"Text narration of every roll, parry, hit, and room event via OS screen reader API",RT-F024
+RT-F097,Keyboard Navigation Fallback,accessibility,should,M,"Full no-mouse play: menus, shops, map",RT-F004
+RT-F098,Colorblind Palettes,accessibility,should,S,"Deuteranopia / protanopia / tritanopia safe palettes for treasure/potion/monster/danger cues",
+RT-F099,Text Size Options,accessibility,should,S,"Small/medium/large/XL UI text with reflow",RT-F073
+RT-F100,Remappable Inputs,accessibility,should,M,"Full rebind UI across KBM, gamepad, touch",RT-F004
+RT-F101,Parry Window Scaling,accessibility,should,S,"Slider 0.75x - 2x for parry/dodge windows; does not disable achievements",RT-F020
+RT-F102,Slow-Motion Assist,accessibility,should,M,"Toggleable slow-mo during telegraphs up to 0.3x time scale",RT-F034
+RT-F103,Subtitles & SFX Captions,accessibility,should,S,"Captions for boss barks, monster cues, important SFX",RT-F084
+RT-F104,Reduced-Motion Toggle,accessibility,should,S,"Disables camera shake, slow-mo, flash effects",RT-F032
+RT-F105,PC Steam Build,platform,must,M,"Windows/Mac/Linux Steam build with achievements, cloud saves",RT-F005
+RT-F106,itch.io Build,platform,should,S,"Parallel itch release with DRM-free zip",RT-F105
+RT-F107,Steam Deck Verified,platform,should,M,"Controller-first UI, appropriate text size, 40 W TDP target, Deck-verified submission",RT-F004;RT-F107
+RT-F108,Mobile Touch Input,platform,should,L,"Touch virtual stick + gesture parry/dodge; shop tap UI; mobile HUD layout",RT-F004
+RT-F109,PWA Fallback,platform,could,L,"Progressive web build with service-worker caching; playable offline",
+RT-F110,Telemetry / Analytics,tools,should,S,"Opt-in anonymized event log: deaths per room, average parry rate, build popularity",
+RT-F111,Crash Reporter,tools,should,S,"Sentry-style crash upload with user consent",
+RT-F112,Build / CI Pipeline,tools,must,M,"Automated per-platform builds, test runner, version tagging",
+RT-F113,Unit Test Harness,tools,must,S,"Tests for RNG determinism, BFS reachability, damage math, save migration",RT-F007

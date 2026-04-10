@@ -1,0 +1,55 @@
+flowchart TD
+    Setup["Setup<br/>HP=17, AD=1, DD=1<br/>Treasure=0, Potions=0<br/>Place marker on Start"]
+    Setup --> TurnStart
+
+    TurnStart["Turn Start"] --> PickSquare
+    PickSquare{"Step 1<br/>Pick next square<br/>(king-adjacent, unvisited)"}
+    PickSquare -->|No legal move or<br/>End unreachable| LoseBlocked["LOSS<br/>Blocked / Stuck"]
+    PickSquare -->|Legal move selected| IsEnd{"Is target<br/>the End square?"}
+
+    IsEnd -->|Yes| BossFight
+    IsEnd -->|No| EnterRoom["Mark square<br/>Draw line from previous"]
+
+    EnterRoom --> RollContent["Step 2<br/>Roll d6 on<br/>current row's Level table"]
+
+    RollContent --> Content{"Room content?"}
+    Content -->|Empty| Recover
+    Content -->|Treasure| AddTreasure["Step 3<br/>Treasure += 1"]
+    Content -->|Potion| AddPotion["Step 4<br/>Potions += 1"]
+    Content -->|Monster| Combat
+
+    AddTreasure --> Recover
+    AddPotion --> Recover
+
+    subgraph Combat_Loop ["Step 5 — Combat (Atomic Loop)"]
+        direction TB
+        Combat["Combat vs. Monster<br/>(monster HP = 1)"] --> MonsterAttack
+        MonsterAttack["Monster rolls AD<br/>6s = Hits"] --> PlayerDefend
+        PlayerDefend["Player rolls DD<br/>6s cancel Hits"] --> TakeDamage["HP -= unblocked Hits"]
+        TakeDamage --> CheckDead{"HP <= 0?"}
+        CheckDead -->|Yes| LoseDead["LOSS<br/>Player Dead"]
+        CheckDead -->|No| PlayerAttack["Player rolls AD<br/>6s = Hits"]
+        PlayerAttack --> MonsterDefend["Monster rolls DD<br/>(0 for most, 9 for Dracular)"]
+        MonsterDefend --> MonsterDead{"Any Hits<br/>remain?"}
+        MonsterDead -->|No| MonsterAttack
+        MonsterDead -->|Yes| MonsterKO["Monster dies"]
+    end
+
+    MonsterKO --> IsBoss{"Was this<br/>Dracular?"}
+    IsBoss -->|Yes| WinGame["VICTORY<br/>Dungeon Cleared"]
+    IsBoss -->|No| Recover
+
+    Recover["Step 6<br/>Use Potions? (1 Potion → +1 HP,<br/>cap at 17)"]
+    Recover --> Shop["Step 7<br/>Spend Treasure at Shop?<br/>(Items permanent,<br/>bought Potions usable next turn)"]
+
+    Shop --> TurnEnd["Turn End"]
+    TurnEnd --> TurnStart
+
+    BossFight["Enter End<br/>Forced Boss Fight"] --> Combat
+
+    classDef start fill:#c8e6c9,stroke:#2e7d32,color:#000
+    classDef loss fill:#ffcdd2,stroke:#c62828,color:#000
+    classDef win fill:#fff59d,stroke:#f9a825,color:#000
+    class Setup start
+    class LoseBlocked,LoseDead loss
+    class WinGame win
