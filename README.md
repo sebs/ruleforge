@@ -1,5 +1,8 @@
 # RuleForge
 
+![Ruleforge](./rf.jpg)
+
+
 Board game to digital concept extractor — transforms board game rulebooks (PDFs) into development-ready digital game concepts.
 
 RuleForge extracts mechanics, game loops, balance parameters, and produces GDDs, feature lists, user stories, architecture diagrams, and more. It can also translate the extraction into a complete real-time interactive game design.
