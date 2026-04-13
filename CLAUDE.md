@@ -40,7 +40,7 @@ The full pipeline and individual extraction skills are in `.claude/commands/`:
 
 | Command | Description |
 |---|---|
-| `/realtime-forge` | Translate RuleForge output into a complete real-time interactive game design (2D/3D). 7 waves, ~30 output files covering analysis, RTGDD, revised docs, architecture, balance, assets, prototypes, deployment. |
+| `/realtimeforge` | Translate RuleForge output into a complete real-time interactive game design (2D/3D). 7 waves, ~30 output files covering analysis, RTGDD, revised docs, architecture, balance, assets, prototypes, deployment. |
 
 ### Standalone Skills
 
@@ -62,7 +62,7 @@ The full pipeline and individual extraction skills are in `.claude/commands/`:
 4. `/economy-flow` — Map the resource economy
 5. `/accessibility-audit` — Check for accessibility barriers
 6. `/dev-bundle` — Validate and package all output files
-7. `/realtime-forge` — Translate into a real-time interactive game design (2D/3D)
+7. `/realtimeforge` — Translate into a real-time interactive game design (2D/3D)
 
 ## Output Directory
 

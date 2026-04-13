@@ -73,7 +73,7 @@ RuleForge is built as a collection of Claude Code slash commands (skills) that f
 
 | Command | Description |
 |---|---|
-| `/realtime-forge` | Translate extraction into a real-time interactive game design (2D/3D) |
+| `/realtimeforge` | Translate extraction into a real-time interactive game design (2D/3D) |
 
 ### Standalone Tools
 
@@ -102,7 +102,7 @@ solo-dungeon-bash/
   Architecture.mmd
   BalanceSheet.csv
   ...
-  realtime/          # /realtime-forge output
+  realtime/          # /realtimeforge output
     analysis/
     design/
     architecture/
